@@ -568,7 +568,9 @@
 
     </div>
 
-
+    <div class="info-block" style="background:rgba(88,101,242,0.06);border-color:rgba(88,101,242,0.2);color:#a5b4fc;">
+      <strong style="color:#8b97f8;">Не качается?</strong> GitHub заблокирован в РФ — попробуй включить VPN и скачать снова.
+    </div>
 
   </section>
 </div>
@@ -580,11 +582,12 @@
 </footer>
 
 <script>
+  const PROXY = 'https://zapret-proxy.your-subdomain.workers.dev';
   const autoUrls = {};
 
   async function loadLatestRelease() {
     try {
-      const res = await fetch('https://api.github.com/repos/Flowseal/zapret-discord-youtube/releases/latest');
+      const res = await fetch(`${PROXY}/releases/latest`);
       const data = await res.json();
       const tag = data.tag_name;
       const assets = data.assets || [];
@@ -612,12 +615,7 @@
   function autoDownload(ext) {
     const url = autoUrls[ext];
     if (!url) return;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = '';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    window.location.href = url;
   }
 
   loadLatestRelease();
