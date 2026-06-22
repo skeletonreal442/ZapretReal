@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZapretReal — Обход блокировок</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700;900&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent: #5865f2;
+    --accent2: #ed4245;
+    --green: #57f287;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --card: #13131c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(88,101,242,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(88,101,242,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glow {
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 500px;
+    background: radial-gradient(ellipse, rgba(88,101,242,0.12) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    padding: 28px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.3px;
+  }
+
+  .logo-text span { color: var(--accent); }
+
+  .badge {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    background: rgba(87,242,135,0.08);
+    border: 1px solid rgba(87,242,135,0.2);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  .hero {
+    padding: 72px 0 48px;
+    text-align: center;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 20px;
+    margin-bottom: 28px;
+  }
+
+  .hero-tag::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  h1 {
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1.05;
+    margin-bottom: 20px;
+  }
+
+  h1 .line1 { display: block; }
+  h1 .line2 { display: block; color: var(--accent); }
+
+  .hero-sub {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 480px;
+    margin: 0 auto 16px;
+    line-height: 1.6;
+  }
+
+  .source-link {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .source-link a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .source-link a:hover { text-decoration: underline; }
+
+  .download-section {
+    padding: 16px 0 80px;
+  }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .section-label::before, .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  @media (max-width: 640px) {
+    .cards { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: var(--accent); }
+
+  .card-type {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+  }
+
+  .card-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+
+  .card-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+    margin-bottom: 22px;
+  }
+
+  .card.featured { border-color: rgba(88,101,242,0.4); }
+
+  .card.featured::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .card.auto-card { border-color: rgba(87,242,135,0.2); }
+
+  .card.auto-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+  }
+
+  .version-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+
+  .version-pill.fixed {
+    background: rgba(88,101,242,0.1);
+    border: 1px solid rgba(88,101,242,0.25);
+    color: #8b97f8;
+  }
+
+  .version-pill.auto {
+    background: rgba(87,242,135,0.08);
+    border: 1px solid rgba(87,242,135,0.2);
+    color: var(--green);
+  }
+
+  .version-pill.auto::before {
+    content: '⟳';
+    font-size: 12px;
+  }
+
+  .dl-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dl-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+
+  .dl-btn:hover {
+    background: rgba(88,101,242,0.1);
+    border-color: rgba(88,101,242,0.4);
+    color: #fff;
+  }
+
+  .dl-btn.green:hover {
+    background: rgba(87,242,135,0.08);
+    border-color: rgba(87,242,135,0.3);
+  }
+
+  .dl-btn-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .dl-icon {
+    width: 28px;
+    height: 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .dl-label { font-weight: 600; }
+  .dl-size {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    display: block;
+    line-height: 1;
+    margin-top: 2px;
+  }
+
+  .dl-arrow {
+    color: var(--muted);
+    font-size: 14px;
+    transition: transform 0.15s;
+  }
+
+  .dl-btn:hover .dl-arrow {
+    transform: translateY(1px);
+    color: var(--accent);
+  }
+
+  button.dl-btn {
+    background: none;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+  }
+
+  .dl-btn.green:hover .dl-arrow { color: var(--green); }
+
+  .info-block {
+    background: rgba(237,66,69,0.06);
+    border: 1px solid rgba(237,66,69,0.2);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 13px;
+    color: #f0a0a0;
+    line-height: 1.55;
+    margin-bottom: 16px;
+  }
+
+  .info-block strong { color: #f87171; }
+
+  .steps {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 48px;
+  }
+
+  .steps-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    letter-spacing: -0.2px;
+  }
+
+  .step-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    width: 26px;
+    height: 26px;
+    background: rgba(88,101,242,0.12);
+    border: 1px solid rgba(88,101,242,0.25);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .step-text {
+    font-size: 13px;
+    color: #b0b0c0;
+    line-height: 1.6;
+  }
+
+  .step-text code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: rgba(88,101,242,0.1);
+    border: 1px solid rgba(88,101,242,0.2);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: #a5b4fc;
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 28px 0;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    position: relative;
+    z-index: 1;
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="glow"></div>
+
+<div class="container">
+  <header>
+    <div class="logo-mark">Z</div>
+    <div class="logo-text">Zapret<span>Real</span></div>
+    <div class="badge">● активен</div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-tag">Основано на zapret-discord-youtube by Flowseal</div>
+    <h1>
+      <span class="line1">Обход блокировок</span>
+      <span class="line2">Discord & YouTube</span>
+    </h1>
+    <p class="hero-sub">
+      Бесплатный инструмент для обхода DPI-блокировок на Windows. Работает без VPN и прокси — прямо на твоём компьютере.
+    </p>
+    <p class="source-link">Оригинальный репозиторий: <a href="https://github.com/Flowseal/zapret-discord-youtube" target="_blank">github.com/Flowseal/zapret-discord-youtube</a></p>
+  </section>
+
+  <section class="download-section">
+
+    <div class="section-label">скачать</div>
+
+    <div class="info-block">
+      <strong>Антивирус может ругаться</strong> — это ложное срабатывание. Попробуй скачать архив в другом формате (rar / zip / tar.gz), или временно отключи антивирус, распакуй, и снова включи.
+    </div>
+
+    <div class="cards">
+
+      <div class="card featured">
+        <div class="card-type">Вариант 1</div>
+        <div class="card-title">Прямые ссылки</div>
+        <p class="card-desc">Прямые ссылки на версию <strong>1.9.9c</strong> с оригинального репозитория Flowseal. Работает даже если GitHub API недоступен.</p>
+        <div class="version-pill fixed">v1.9.9c · latest</div>
+        <div class="dl-buttons">
+          <a class="dl-btn" href="https://github.com/Flowseal/zapret-discord-youtube/releases/download/1.9.9c/zapret-discord-youtube-1.9.9c.zip" download>
+            <div class="dl-btn-left">
+              <div class="dl-icon">🗜</div>
+              <div>
+                <div class="dl-label">Скачать ZIP</div>
+                <span class="dl-size">рекомендуется</span>
+              </div>
+            </div>
+            <span class="dl-arrow">↓</span>
+          </a>
+          <a class="dl-btn" href="https://github.com/Flowseal/zapret-discord-youtube/releases/download/1.9.9c/zapret-discord-youtube-1.9.9c.rar" download>
+            <div class="dl-btn-left">
+              <div class="dl-icon">📦</div>
+              <div>
+                <div class="dl-label">Скачать RAR</div>
+                <span class="dl-size">если ZIP блокирует антивирус</span>
+              </div>
+            </div>
+            <span class="dl-arrow">↓</span>
+          </a>
+          <a class="dl-btn" href="https://github.com/Flowseal/zapret-discord-youtube/releases/download/1.9.9c/zapret-discord-youtube-1.9.9c.tar.gz" download>
+            <div class="dl-btn-left">
+              <div class="dl-icon">🗃</div>
+              <div>
+                <div class="dl-label">Скачать TAR.GZ</div>
+                <span class="dl-size">альтернативный вариант</span>
+              </div>
+            </div>
+            <span class="dl-arrow">↓</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="card auto-card">
+        <div class="card-type">Вариант 2</div>
+        <div class="card-title">Авто-обновление</div>
+        <p class="card-desc">Автоматически берёт последний релиз с репозитория Flowseal и сразу скачивает нужный архив — всегда актуальная версия.</p>
+        <div class="version-pill auto">всегда актуально</div>
+        <div class="dl-buttons">
+          <button class="dl-btn green" id="btn-auto-zip" onclick="autoDownload('zip')">
+            <div class="dl-btn-left">
+              <div class="dl-icon">🗜</div>
+              <div>
+                <div class="dl-label">Скачать ZIP</div>
+                <span class="dl-size" id="ver-zip">загрузка версии...</span>
+              </div>
+            </div>
+            <span class="dl-arrow">↓</span>
+          </button>
+          <button class="dl-btn green" id="btn-auto-rar" onclick="autoDownload('rar')">
+            <div class="dl-btn-left">
+              <div class="dl-icon">📦</div>
+              <div>
+                <div class="dl-label">Скачать RAR</div>
+                <span class="dl-size" id="ver-rar">загрузка версии...</span>
+              </div>
+            </div>
+            <span class="dl-arrow">↓</span>
+          </button>
+          <button class="dl-btn green" id="btn-auto-tar" onclick="autoDownload('tar.gz')">
+            <div class="dl-btn-left">
+              <div class="dl-icon">🗃</div>
+              <div>
+                <div class="dl-label">Скачать TAR.GZ</div>
+                <span class="dl-size" id="ver-tar">загрузка версии...</span>
+              </div>
+            </div>
+            <span class="dl-arrow">↓</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+
+
+  </section>
+</div>
+
+<footer>
+  <div class="container">
+    ZapretReal · Скачивай только с официального репозитория <a href="https://github.com/Flowseal/zapret-discord-youtube" target="_blank">Flowseal/zapret-discord-youtube</a>
+  </div>
+</footer>
+
+<script>
+  const autoUrls = {};
+
+  async function loadLatestRelease() {
+    try {
+      const res = await fetch('https://api.github.com/repos/Flowseal/zapret-discord-youtube/releases/latest');
+      const data = await res.json();
+      const tag = data.tag_name;
+      const assets = data.assets || [];
+
+      const find = (ext) => {
+        const a = assets.find(a => a.name.endsWith(ext));
+        return a ? a.browser_download_url : null;
+      };
+
+      autoUrls['zip']    = find('.zip');
+      autoUrls['rar']    = find('.rar');
+      autoUrls['tar.gz'] = find('.tar.gz');
+
+      document.getElementById('ver-zip').textContent = autoUrls['zip']    ? tag : 'не найден';
+      document.getElementById('ver-rar').textContent = autoUrls['rar']    ? tag : 'не найден';
+      document.getElementById('ver-tar').textContent = autoUrls['tar.gz'] ? tag : 'не найден';
+
+    } catch (e) {
+      ['ver-zip','ver-rar','ver-tar'].forEach(id => {
+        document.getElementById(id).textContent = 'ошибка загрузки';
+      });
+    }
+  }
+
+  function autoDownload(ext) {
+    const url = autoUrls[ext];
+    if (!url) return;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  loadLatestRelease();
+</script>
+
+</body>
+</html>
